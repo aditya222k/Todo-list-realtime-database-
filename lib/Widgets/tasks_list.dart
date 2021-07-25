@@ -12,12 +12,10 @@ class TaskList extends StatefulWidget {
 }
 
 class _TaskListState extends State<TaskList> {
-  var dbref = FirebaseDatabase.instance.reference();
   List list = [];
 
-
   // List title = [];
-  final databaseRef = FirebaseDatabase.instance.reference().child('Task');
+  final ref = FirebaseDatabase.instance.reference().child('Tasks');
 
   // getList() async {
   //   databaseRef.once().then((DataSnapshot snapshot) {
@@ -35,106 +33,87 @@ class _TaskListState extends State<TaskList> {
     return Consumer<TaskData>(
       builder: (context, taskData, child) {
         return FutureBuilder(
-          future: databaseRef.once(),
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
+            future: ref.once(),
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.data.value != null) {
+                  list.clear();
+                  Map<dynamic, dynamic> values = snapshot.data.value;
+                  values.forEach((key, value) {
+                    list.add(key);
+                  });
+                  return ListView.builder(
+                    physics: BouncingScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final task = taskData.tasks[index];
+                      return FutureBuilder(
+                          future: ref.child('${list[index]}').once(),
+                          builder: (BuildContext cont, AsyncSnapshot snap) {
+                            if (snap.connectionState == ConnectionState.done) {
+                              if (snap.data.value != null) {
+                                String title = snap.data.value['Task Name'];
+                                bool check = snap.data.value['Status'];
 
-              if (snapshot.data.value != null) {
-                print(snapshot.data.value);
-                list.clear();
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white, //background color of box
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.2),
+                                          blurRadius: 25.0, // soften the shadow
+                                          spreadRadius: 5.0, //extend the shadow
+                                          // offset: Offset(
+                                          //   15.0, // Move to right 10  horizontally
+                                          //   15.0, // Move to bottom 10 Vertically
+                                          // ),
+                                        )
+                                      ],
+                                    ),
+                                    child: TaskTile(
+                                      taskTitle: title,
+                                      isChecked: check,
+                                      checkboxCallback: (checkboxState) {
 
-                Map<dynamic, dynamic> values = snapshot.data.value;
-                values.forEach((key, value) {
-                  list.add(key);
-                });
-                // print(list);
-                return ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  itemBuilder: (context, index) {
-                    // list[index];
-                    // print(snapshot.data.value);
-                    // var data = snapshot.data.value[];
-                    final task = taskData.tasks[index];
-                    // return TaskTile(
-                    //   isChecked: task.isDone,
-                    //   taskTitle: task.name,
-                    //   checkboxCallback: (checkboxState) {
-                    //     task.isDone
-                    //         ? databaseRef.child('${list[index]}').update({
-                    //       'Value': false,
-                    //     })
-                    //         : databaseRef.child('${list[index]}').update({
-                    //       'Value': true,
-                    //     });
-                    //
-                    //     taskData.updateTask(task);
-                    //   },
-                    //   longPressCallback: () {
-                    //     taskData.deleteTask(task);
-                    //     dbref.child('$task').remove();
-                    //   },
-                    // );
-                    return FutureBuilder(
-                      future: databaseRef.child("${list[index]}").once(),
-                      builder: (BuildContext cnt, AsyncSnapshot snap) {
-                        if(snap.connectionState == ConnectionState.done){
-                        if(snap.data.value != null){
-                          List listItem = [];
-                          String title = snap.data.value['Title'];
-                          bool check = snap.data.value['Value'];
-                          // print(snap.data.value['Title']);
-                          // print(snap.data.value['Value']);
+                                        taskData.updateTask(task);
+                                        if(task.isDone){
+                                          ref.child('${list[index]}').update({
+                                            'Status':true
+                                          });
+                                        }else{
+                                          ref.child('${list[index]}').update({
+                                            'Status':false
+                                          });
+                                        }
+                                      },
+                                      longPressCallback: () {
+                                        ref.child('${list[index]}').remove();
+                                        taskData.deleteTask(task);
+                                      },
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                return Container();
+                              }
+                            } else {
+                              return Container();
+                            }
+                          });
+                    },
+                    itemCount: taskData.taskCount,
+                  );
+                }else{
+                  return Container();
+                    Center(child: CircularProgressIndicator());
 
-                          // listItem = snap.data.value['Title'];
-                          // Map<dynamic, dynamic> taskvalue = snap.data.value;
-                          // taskvalue.forEach((key, value) {
-                          //   title.add(key);
-                          // });
-                          // print(title);
-                          return TaskTile(
-                              isChecked: check,
-                              taskTitle: title,
-                              checkboxCallback: (checkboxState) {
-                                setState(() {
-                                  taskData.updateTask(task);
-                                  task.isDone
-                                      ? databaseRef.child('${list[index]}').update({
-                                    'Value': true,
-                                  })
-                                      : databaseRef.child('${list[index]}').update({
-                                    'Value': false,
-                                  });
-                                });
-
-                              },
-                              longPressCallback: () {
-                                taskData.deleteTask(task);
-                                databaseRef.child('${list[index]}').remove();
-                              });
-
-                        }else{
-                          return Center(child: Text('no Data'));
-                        }
-
-                      }else{
-                          return Container();
-
-                        }
-                        // String title = snap.data.value['Title'];
-
-                      },
-                    );
-                  },
-                  itemCount: list.length,
-                );
+                }
               } else {
-                return Center(child: CircularProgressIndicator());
-              }
-            } else {
-              return Center(child: CircularProgressIndicator());
-            }
-          },
-        );
+                return Container();
+              } //if 1
+            });
       },
     );
   }

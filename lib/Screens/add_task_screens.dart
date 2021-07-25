@@ -5,16 +5,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 String newTaskTitle = "";
-int timeStamp=0;
-
-int timecheck() {
-  timeStamp = DateTime.now().millisecondsSinceEpoch;
-  return timeStamp ;
-}
+int timeStamp =0;
 
 class AddTaskScreen extends StatelessWidget {
-  var dbref =FirebaseDatabase.instance.reference().child('Task');
+  var ref= FirebaseDatabase.instance.reference().child('Tasks');
 
+  int timeCheck(){
+    timeStamp= DateTime.now().millisecondsSinceEpoch;
+    return timeStamp;
+  }
 
 
   @override
@@ -39,14 +38,12 @@ class AddTaskScreen extends StatelessWidget {
             ),
             MaterialButton(
               onPressed: () {
-                timecheck();
-                print(timeStamp);
-                dbref.child('$timeStamp').update({
-                  'Title': newTaskTitle,
-                  'Value': false,
+                timeCheck();
+                print('$timeStamp');
+                ref.child('$timeStamp').update({
+                  'Task Name':newTaskTitle,
+                  'Status': false,
                 });
-
-
 
                 Provider.of<TaskData>(context,listen:false).addTask(newTaskTitle);
                 Navigator.pop(context);
