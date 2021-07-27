@@ -1,4 +1,0 @@
-#Sun Jul 25 19:58:25 IST 2021
-base.0=/Users/aditya/Desktop/Androidprojects/todo_list/build/app/intermediates/dex/debug/mergeDexDebug/classes.dex
-path.0=classes.dex
-renamed.0=classes.dex
