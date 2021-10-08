@@ -1,5 +1,0 @@
-version: "Apple Swift version 5.4 (swiftlang-1205.0.26.9 clang-1205.0.19.55)"
-options: "95ffdbec3c2852d8c04a88c62c74cdf5"
-build_time: [1627347641, 777223000]
-inputs:
-  "/Users/aditya/Desktop/Androidprojects/todo_list/ios/Runner/AppDelegate.swift": [1622111342, 0]
